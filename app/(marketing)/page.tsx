@@ -3,8 +3,8 @@ import Image from "next/image";
 
 export default function Home() {
   return (
-    <Button>
-      Click me
-    </Button>
+    <div className="">
+      This is the marketing page
+    </div>
   );
 }
