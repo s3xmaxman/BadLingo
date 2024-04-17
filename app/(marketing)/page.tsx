@@ -38,8 +38,12 @@ export default function Home() {
                 afterSignInUrl="/learn"
                 afterSignUpUrl="/learn"
               >
-                <Button size="lg" variant="secondary" className="w-full">
-                  Get Started
+                <Button 
+                  size="lg" 
+                  variant="secondary" 
+                  className="w-full"
+                >
+                  さぁ、始めましょう
                 </Button>
               </SignUpButton>
               <SignInButton
@@ -47,14 +51,23 @@ export default function Home() {
                 afterSignInUrl="/learn"
                 afterSignUpUrl="/learn"
               >
-                <Button size="lg" variant="primaryOutline" className="w-full">
-                  I already have an account
+                <Button 
+                  size="lg" 
+                  variant="primaryOutline" 
+                  className="w-full"
+                >
+                 既にアカウントを持っています
                 </Button>
               </SignInButton>
             </SignedOut>
             <SignedIn>
-              <Button size="lg" variant="secondary" className="w-full" asChild>
-                <Link href="/learn">学習を再開しよう！</Link>
+              <Button 
+                size="lg" 
+                variant="secondary" 
+                className="w-full" 
+                asChild
+              >
+                <Link href="/learn">学習を再開しましょう！</Link>
               </Button>
             </SignedIn>
           </ClerkLoaded>
