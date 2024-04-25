@@ -6,9 +6,15 @@ import { getUserProgress } from "@/db/query"
 import { redirect } from "next/navigation";
 
 const LearnPage = async() => {
-    const userProgress = await getUserProgress();
+    const userProgressData = getUserProgress();
 
-    if (!userProgress) {
+    const [
+        userProgress
+    ] = await Promise.all([
+        userProgressData
+    ])
+
+    if (!userProgress || !userProgress.activeCourseId) {
         redirect("/courses")
     }
     
@@ -16,14 +22,14 @@ const LearnPage = async() => {
         <div className="flex flex-row-reverse gap-[48px] px-6">
             <StickyWrapper>
                 <UserProgress
-                    activeCourse={{ title: "Spanish", imageSrc:"/es.svg" }}
-                    hearts={5}
-                    points={100}
+                    activeCourse={userProgress.activeCourse}
+                    hearts={userProgress.hearts}
+                    points={userProgress.points}
                     hasActiveSubscription={false} 
                 />
             </StickyWrapper>
             <FeedWrapper>
-                <Header title="Spanish" />
+                <Header title={userProgress.activeCourse.title} />
             </FeedWrapper>
         </div>
     )
