@@ -25,7 +25,7 @@ export const Quiz = ({ initialPercentage, initialHearts, initialLessonId, initia
             <Header
                 hearts={hearts} 
                 percentage={percentage}
-                hasActiveSubscription={!!userSubscription}
+                hasActiveSubscription={!!userSubscription?.isActive}
             />
         </>
     )
