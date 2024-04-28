@@ -84,7 +84,7 @@ export const Quiz = ({ initialPercentage, initialHearts, initialLessonId, initia
            <Footer
                disabled={!selectedOption}
                status={status}
-               onClick={() => {}}
+               onCheck={() => {}}
            />    
         </>
     )
