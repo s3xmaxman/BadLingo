@@ -199,8 +199,8 @@ export const Quiz = ({ initialPercentage, initialHearts, initialLessonId, initia
 
     return (
         <>
-            { correctAudio }
-            { incorrectAudio }
+            {correctAudio}
+            {incorrectAudio}
             <Header
                 hearts={hearts} 
                 percentage={percentage}
