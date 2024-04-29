@@ -11,7 +11,7 @@ import { upsertChallengeProgress } from "@/actions/challenge-progress";
 import { toast } from "sonner";
 import { start } from "repl";
 import { reduceHearts } from "@/actions/user-progress";
-import { useAudio } from "react-use";
+import { useAudio, useWindowSize } from "react-use";
 import Image from "next/image";
 import { ResultCard } from "./result-card";
 import { useRouter } from "next/navigation";
@@ -30,6 +30,8 @@ type Props = {
 
 
 export const Quiz = ({ initialPercentage, initialHearts, initialLessonId, initialLessonChallenges, userSubscription }: Props) => {
+    const { width, height } = useWindowSize();
+
     const router = useRouter();
 
     const [ finishAudio ] = useAudio({ src: "/taco_truck.mp3", autoPlay: true });
@@ -39,6 +41,8 @@ export const Quiz = ({ initialPercentage, initialHearts, initialLessonId, initia
     const [ incorrectAudio, _i, incorrectControls ] = useAudio({ src: "/incorrect.wav" });
 
     const [ pending, startTransition ] = useTransition();
+
+    const [ lessonId ] = useState(initialLessonId);
 
     const [ hearts, setHearts ] = useState(initialHearts);
 
@@ -175,9 +179,9 @@ export const Quiz = ({ initialPercentage, initialHearts, initialLessonId, initia
           </>
         );
     }
+    
 
     const title = challenge.type === "ASSIST" ? "Select the correct meaning" : challenge.question;
-
 
 
     return (
