@@ -9,13 +9,13 @@ import { Challenge } from "./challenge";
 import { Footer } from "./footer";
 import { upsertChallengeProgress } from "@/actions/challenge-progress";
 import { toast } from "sonner";
-import { start } from "repl";
 import { reduceHearts } from "@/actions/user-progress";
-import { useAudio, useWindowSize } from "react-use";
+import { useAudio, useWindowSize, useMount } from "react-use";
 import Image from "next/image";
 import { ResultCard } from "./result-card";
 import { useRouter } from "next/navigation";
 import { useHeartsModal } from "@/store/use-hearts-modal";
+import { usePracticeModal } from "@/store/use-practice-modal";
 
 
 type Props = {
@@ -33,6 +33,14 @@ type Props = {
 export const Quiz = ({ initialPercentage, initialHearts, initialLessonId, initialLessonChallenges, userSubscription }: Props) => {
     const { open: openHeartsModal } = useHeartsModal();
 
+    const { open: openPracticeModal } = usePracticeModal();
+
+    useMount(() => {
+       if(initialPercentage === 100) {
+            openPracticeModal() 
+       }
+    });
+
     const { width, height } = useWindowSize();
 
     const router = useRouter();
@@ -49,7 +57,9 @@ export const Quiz = ({ initialPercentage, initialHearts, initialLessonId, initia
 
     const [ hearts, setHearts ] = useState(initialHearts);
 
-    const [ percentage, setPercentage ] = useState(initialPercentage);
+    const [ percentage, setPercentage ] = useState(() => {
+        return initialPercentage === 100 ? 0 : initialPercentage;
+    });
 
     const [ challenges ]= useState(initialLessonChallenges)
 
@@ -103,7 +113,7 @@ export const Quiz = ({ initialPercentage, initialHearts, initialLessonId, initia
             startTransition(() => {
                 upsertChallengeProgress(challenge.id)
                 .then((response) => {
-                    if(response?.error) {
+                    if(response?.error === "hearts") {
                         openHeartsModal();
                         return;
                     }
@@ -122,7 +132,7 @@ export const Quiz = ({ initialPercentage, initialHearts, initialLessonId, initia
             startTransition(() => {
                 reduceHearts(challenge.id)
                 .then((response) => {
-                    if(response?.error) {
+                    if(response?.error === "hearts") {
                         openHeartsModal();
                         return;
                     }
@@ -167,7 +177,7 @@ export const Quiz = ({ initialPercentage, initialHearts, initialLessonId, initia
                     width={50}
               />
               <h1 className="text-xl lg:text-3xl font-bold text-neutral-700">
-                Great job! <br /> You&apos;ve completed the lesson.
+                おめでとうございます！レッスンを完了しました。
               </h1>
               <div className="flex items-center gap-x-4 w-full">
                     <ResultCard variant="points" value={challenges.length * 10} />
