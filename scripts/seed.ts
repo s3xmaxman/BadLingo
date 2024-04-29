@@ -23,29 +23,28 @@ const main = async () => {
         // await db.delete(schema.userSubscription);
 
         await db.insert(schema.courses).values([
-            {
-              id: 1,
-              title: "Spanish",
-              imageSrc: "/es.svg",
-            },
-            {
-              id: 2,
-              title: "Italian",
-              imageSrc: "/it.svg",
-            },
-            {
-              id: 3,
-              title: "French",
-              imageSrc: "/fr.svg",
-            },
-            {
-              id: 4,
-              title: "Croatian",
-              imageSrc: "/hr.svg",
-            },
+          {
+            id: 1,
+            title: "Spanish",
+            imageSrc: "/es.svg",
+          },
+          {
+            id: 2,
+            title: "Italian",
+            imageSrc: "/it.svg",
+          },
+          {
+            id: 3,
+            title: "French",
+            imageSrc: "/fr.svg",
+          },
+          {
+            id: 4,
+            title: "Croatian",
+            imageSrc: "/hr.svg",
+          },
         ]);
-
-
+    
         await db.insert(schema.units).values([
           {
             id: 1,
@@ -55,8 +54,7 @@ const main = async () => {
             order: 1,
           },
         ]);
-
-
+    
         await db.insert(schema.lessons).values([
           {
             id: 1,
@@ -89,8 +87,7 @@ const main = async () => {
             title: "Verbs",
           },
         ]);
-
-
+    
         await db.insert(schema.challenges).values([
           {
             id: 1,
@@ -114,8 +111,7 @@ const main = async () => {
             question: 'Which one of these is the "the robot"?',
           },
         ]);
-
-
+    
         await db.insert(schema.challengeOptions).values([
           {
             challengeId: 1, // Which one of these is "the man"?
@@ -131,7 +127,7 @@ const main = async () => {
             text: "la mujer",
             audioSrc: "/es_woman.mp3",
           },
-          { 
+          {
             challengeId: 1,
             imageSrc: "/robot.svg",
             correct: false,
@@ -139,7 +135,7 @@ const main = async () => {
             audioSrc: "/es_robot.mp3",
           },
         ]);
-
+    
         await db.insert(schema.challengeOptions).values([
           {
             challengeId: 2, // "the man"?
@@ -160,7 +156,7 @@ const main = async () => {
             audioSrc: "/es_robot.mp3",
           },
         ]);
-
+    
         await db.insert(schema.challengeOptions).values([
           {
             challengeId: 3, // Which one of these is the "the robot"?
@@ -184,8 +180,30 @@ const main = async () => {
             audioSrc: "/es_robot.mp3",
           },
         ]);
-
-
+    
+        await db.insert(schema.challenges).values([
+          {
+            id: 4,
+            lessonId: 2, // Verbs
+            type: "SELECT",
+            order: 1,
+            question: 'Which one of these is the "the man"?',
+          },
+          {
+            id: 5,
+            lessonId: 2, // Verbs
+            type: "ASSIST",
+            order: 2,
+            question: '"the man"',
+          },
+          {
+            id: 6,
+            lessonId: 2, // Verbs
+            type: "SELECT",
+            order: 3,
+            question: 'Which one of these is the "the robot"?',
+          },
+        ]);
         
         console.log("Database seeded")
     } catch (error) {
