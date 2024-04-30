@@ -203,7 +203,7 @@ export const Quiz = ({ initialPercentage, initialHearts, initialLessonId, initia
                     width={50}
               />
               <h1 className="text-xl lg:text-3xl font-bold text-neutral-700">
-                おめでとうございます！レッスンを完了しました。
+                おめでとうございます！<br />レッスンを完了しました。
               </h1>
               <div className="flex items-center gap-x-4 w-full">
                     <ResultCard variant="points" value={challenges.length * 10} />

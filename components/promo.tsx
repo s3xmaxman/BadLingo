@@ -19,7 +19,7 @@ export const Promo = () => {
             </h3>
             </div>
             <p className="text-muted-foreground">
-                無限ハートを手に入れましょう
+                無限ハートを手に入れましょう!
             </p>
         </div>
         <Button
