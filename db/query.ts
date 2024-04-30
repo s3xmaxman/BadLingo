@@ -312,3 +312,31 @@ export const getUserSubscription = cache(async () => {
 
     return { ...data, isActive: !!isActive }
 })
+
+
+
+//上位10人のユーザー情報を取得する関数
+export const getTopTenUsers = cache(async () => {
+
+    const { userId } = await auth();
+
+    if(!userId) {
+        return []
+    }
+
+    // データベースからユーザーの進捗情報を取得する
+    // ポイントの降順でソート、上位10件を取得する
+    const data = await db.query.userProgress.findMany({
+
+        orderBy: (userProgress, { desc }) => [desc(userProgress.points)],
+        limit: 10,
+        columns: {
+            userId: true,
+            userName: true,
+            userImageSrc: true,
+            points: true
+        }
+    })
+
+    return data
+})

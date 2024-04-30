@@ -1,5 +1,6 @@
 'use server'
 
+import { POINTS_TO_REFILL } from "@/constants"
 import db from "@/db/drizzle"
 import { getCourseById, getUserProgress, getUserSubscription } from "@/db/query"
 import { challengeProgress, challenges, userProgress } from "@/db/schema"
@@ -118,8 +119,7 @@ export const reduceHearts = async (challengeId: number) => {
 
 
 export const refillHearts = async () => {
-    const POINTS_TO_REFILL = 10;
-    
+
     const currentUserProgress = await getUserProgress();
     
     if(!currentUserProgress) {
