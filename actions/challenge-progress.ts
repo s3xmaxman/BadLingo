@@ -6,8 +6,8 @@ import { revalidatePath } from "next/cache";
 
 import db from "@/db/drizzle";
 import { challengeProgress, challenges, userProgress } from "@/db/schema";
-import { getUserProgress } from "@/db/query";
-import { error } from "console";
+import { getUserProgress, getUserSubscription, } from "@/db/query";
+
 
 
 
@@ -20,7 +20,7 @@ export const upsertChallengeProgress = async (challengeId: number) => {
     }
 
     const currentUserProgress = await getUserProgress();
-    // TODO: 進捗状況を取得
+    const userSubscription = await getUserSubscription();
 
     if(!currentUserProgress) {
         throw new Error('ユーザーの進捗状況が見つかりません')
@@ -44,15 +44,17 @@ export const upsertChallengeProgress = async (challengeId: number) => {
     });
 
     const isPractice = !!existingChallengeProgress
-    //Todo Not if user has a subs 
-    if(currentUserProgress.hearts === 0 && !isPractice) {
+
+    if(currentUserProgress.hearts === 0 && !isPractice && !userSubscription) {
         return { error: 'hearts' }
     }
 
     if(isPractice){
-        await db.update(challengeProgress).set({
-            completed: true,
-        }).where(
+        
+        await db
+        .update(challengeProgress)
+        .set({ completed: true })
+        .where(
             eq(challengeProgress.id, existingChallengeProgress.id),
         )
 

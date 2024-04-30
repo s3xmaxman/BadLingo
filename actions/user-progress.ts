@@ -1,7 +1,7 @@
 'use server'
 
 import db from "@/db/drizzle"
-import { getCourseById, getUserProgress } from "@/db/query"
+import { getCourseById, getUserProgress, getUserSubscription } from "@/db/query"
 import { challengeProgress, challenges, userProgress } from "@/db/schema"
 import { auth, currentUser } from "@clerk/nextjs"
 import { and, eq } from "drizzle-orm"
@@ -25,9 +25,9 @@ export const upsertUserProgress = async (courseId: number) => {
         throw new Error('Course not found')
     }
     
-    // if(!course.units.length || !course.units[0].lessons.length) {
-    //     throw new Error('Course has no lessons')
-    // }
+    if(!course.units.length || !course.units[0].lessons.length) {
+        throw new Error('Course has no lessons')
+    }
 
     const existingUserProgress = await getUserProgress()
 
@@ -66,6 +66,7 @@ export const reduceHearts = async (challengeId: number) => {
     }
 
     const currentUserProgress = await getUserProgress();
+    const userSubscription = await getUserSubscription();
 
     const challenge = await db.query.challenges.findFirst({
         where: eq(challenges.id, challengeId)
@@ -92,6 +93,10 @@ export const reduceHearts = async (challengeId: number) => {
 
     if(!currentUserProgress) {
         throw new Error('ユーザーの進捗状況が見つかりません')
+    }
+
+    if(!userSubscription?.isActive) {
+        return { error: "subscription" }
     }
 
     if(currentUserProgress.hearts === 0) {

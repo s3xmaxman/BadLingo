@@ -6,7 +6,7 @@ import { courses } from "./schema";
 import { eq } from "drizzle-orm";
 
 
-
+//ユーザーの進捗状況を取得する関数
 export const getUserProgress = cache(async () => {
  
     const { userId } = await auth();
@@ -30,68 +30,103 @@ export const getUserProgress = cache(async () => {
 });
 
 
+//ユーザーのアクティブなコースのユニットを取得する関数
 export const getUnits = cache(async () => {
+
     const { userId } = await auth();
+
     const userProgress = await getUserProgress();
 
-    if(!userId || !userProgress?.activeCourseId) {
-        return []
+    if (!userId || !userProgress?.activeCourseId) {
+      return [];
     }
 
+    // アクティブなコースに含まれるユニットを取得する
     const data = await db.query.units.findMany({
-        where: eq(units.courseId, userProgress?.activeCourseId),
-        with: {
-            lessons: {
-                with: {
-                    challenges: {
-                        with: {
-                            challengeProgress: {
-                                where: eq(challengeProgress.userId, userId),
-                            }
-                        }
-                    }
-                }
-            }
-        }
+      // ユニットを順番に取得する
+      orderBy: (units, { asc }) => [asc(units.order)],
+      // アクティブなコースIDに一致するユニットを取得する
+      where: eq(units.courseId, userProgress.activeCourseId),
+      with: {
+        lessons: {
+          // レッスンを順番に取得する
+          orderBy: (lessons, { asc }) => [asc(lessons.order)],
+          with: {
+            // レッスンに含まれるチャレンジデータも取得する
+            challenges: {
+              // チャレンジを順番に取得する
+              orderBy: (challenges, { asc }) => [asc(challenges.order)],
+              with: {
+                // チャレンジの進捗状況も取得する
+                challengeProgress: {
+                  where: eq(
+                    challengeProgress.userId,
+                    userId,
+                  ),
+                },
+              },
+            },
+          },
+        },
+      },
     });
 
+    // 取得したユニットデータを整形する
     const normalizedData = data.map((unit) => {
+      // レッスンの完了状況を追加する
+      const lessonsWithCompletedStatus = unit.lessons.map((lesson) => {
+        // チャレンジがない場合は未完了とする
+        if (
+          lesson.challenges.length === 0
+        ) {
+          return { ...lesson, completed: false };
+        }
 
-        const lessonsWithCompletedStatus = unit.lessons.map((lesson) => {
-          
-            if (lesson.challenges.length === 0) { 
-                return { ...lesson, completed: false };
-            }
-           
-            const allCompletedChallenges = lesson.challenges.every((challenge) => {
-                return (
-                    challenge.challengeProgress &&
-                    challenge.challengeProgress.length > 0 &&
-                    challenge.challengeProgress.every((progress) => progress.completed)
-                );
-          });
-    
-          return { ...lesson, completed: allCompletedChallenges };
+        // すべてのチャレンジが完了している場合は完了とする
+        const allCompletedChallenges = lesson.challenges.every((challenge) => {
+          return challenge.challengeProgress
+            && challenge.challengeProgress.length > 0
+            && challenge.challengeProgress.every((progress) => progress.completed);
         });
-    
-        return { ...unit, lessons: lessonsWithCompletedStatus };
+
+        return { ...lesson, completed: allCompletedChallenges };
+      });
+
+      // 整形したユニットデータを返す
+      return { ...unit, lessons: lessonsWithCompletedStatus };
     });
 
-    return normalizedData
-})
+    // 整形したユニットデータを返す
+    return normalizedData;
+});
 
 
-//get course id 
+// コースIDを受け取り、コースの情報を取得する関数
 export const getCourseById = cache(async (courseId: number) => {
+    // データベースからコースの情報を取得する
     const data = await db.query.courses.findFirst({
-        where: eq(courses.id, courseId),
+      // コースIDが一致するレコードを検索
+      where: eq(courses.id, courseId),
+      // ユニットとレッスンの情報も取得する
+      with: {
+        units: {
+          // ユニットを順番に並べる
+          orderBy: (units, { asc }) => [asc(units.order)],
+          with: {
+            lessons: {
+              // レッスンを順番に並べる
+              orderBy: (lessons, { asc }) => [asc(lessons.order)],
+            },
+          },
+        },
+      },
     });
 
     return data;
 });
 
 
-//get courses
+//すべてのコース情報を取得する関数
 export const getCourses = cache(async () => {
     const data = await db.query.courses.findMany();
 
@@ -100,25 +135,36 @@ export const getCourses = cache(async () => {
 
 
 
-//get course progress
+
+//コースの進捗状況を取得する関数
 export const getCourseProgress = cache(async () => {
+ 
     const { userId } = await auth();
+
     const userProgress = await getUserProgress();
   
+
     if (!userId || !userProgress?.activeCourseId) {
       return null;
     }
   
+    // アクティブなコースに含まれるユニットを取得する
     const unitsInActiveCourse = await db.query.units.findMany({
+      // ユニットを順番に取得する
       orderBy: (units, { asc }) => [asc(units.order)],
+      // アクティブなコースIDに一致するユニットを取得する
       where: eq(units.courseId, userProgress.activeCourseId),
       with: {
         lessons: {
+          // レッスンを順番に取得する
           orderBy: (lessons, { asc }) => [asc(lessons.order)],
           with: {
+            // レッスンに関連するユニットデータも取得する
             unit: true,
+            // レッスンに含まれるチャレンジデータも取得する
             challenges: {
               with: {
+                // チャレンジの進捗状況も取得する
                 challengeProgress: {
                   where: eq(challengeProgress.userId, userId),
                 },
@@ -129,6 +175,7 @@ export const getCourseProgress = cache(async () => {
       },
     });
   
+    // 未完了のレッスンを見つける
     const firstUncompletedLesson = unitsInActiveCourse
       .flatMap((unit) => unit.lessons)
       .find((lesson) => {
@@ -143,16 +190,18 @@ export const getCourseProgress = cache(async () => {
         });
       });
   
+    // アクティブなレッスンとレッスンIDを返す
     return {
       activeLesson: firstUncompletedLesson,
       activeLessonId: firstUncompletedLesson?.id,
     };
-
 });
 
 
-//get lesson 
+
+//レッスンデータを取得する関数
 export const getLesson = cache(async (id?: number) => {
+
     const { userId } = await auth();
 
     if (!userId) {
@@ -167,12 +216,15 @@ export const getLesson = cache(async (id?: number) => {
         return null;
     }
 
+    // データベースからレッスンデータを取得する
     const data = await db.query.lessons.findFirst({
         where: eq(lessons.id, lessonId),
         with: {
           challenges: {
+            // チャレンジを順番に取得する
             orderBy: (challenges, { asc }) => [asc(challenges.order)],
             with: {
+              // チャレンジのオプションと進捗状況も取得する
               challengeOptions: true,
               challengeProgress: {
                 where: eq(challengeProgress.userId, userId),
@@ -183,10 +235,12 @@ export const getLesson = cache(async (id?: number) => {
     });
 
 
+    // レッスンデータまたはチャレンジデータが存在しない場合はnullを返す
     if(!data || !data.challenges) {
         return null
     }
 
+    // チャレンジの進捗状況を正規化する
     const normalizedChallenges = data.challenges.map((challenge) => {
         const completed = 
         challenge.challengeProgress &&
@@ -196,12 +250,15 @@ export const getLesson = cache(async (id?: number) => {
         return {...challenge, completed}
     })
 
+    // レッスンデータと正規化されたチャレンジデータを返す
     return {...data, challenges: normalizedChallenges}
 })
 
 
-//get lesson percentage
+
+//レッスンのパーセンテージを取得
 export const getLessonPercentage = cache(async () => {
+
     const courseProgress = await getCourseProgress();
 
     if(!courseProgress?.activeLessonId) {
@@ -214,23 +271,31 @@ export const getLessonPercentage = cache(async () => {
         return 0
     }
 
+    // レッスンの完了済みのチャレンジを取得
     const completedChallenges = lesson.challenges.filter((challenge) => challenge.completed);
     
+    // 完了済みのチャレンジ数 / 全チャレンジ数 * 100 で完了率を計算
     const percentage = (completedChallenges.length / lesson.challenges.length) * 100;
     
+    // 完了率を返す
     return percentage
 })
 
 
+// 1日のミリ秒数
 const DAY_IN_MS = 86_400_000;
+
+// ユーザーのサブスクリプション情報を取得する関数
 export const getUserSubscription = cache(async () => {
     
+
     const { userId } = await auth();
 
     if(!userId) {
         return null
     }
 
+    // ユーザーのサブスクリプション情報を取得
     const data = await db.query.userSubscriptions.findFirst({
         where: eq(userSubscriptions.userId, userId),
     })
@@ -239,10 +304,11 @@ export const getUserSubscription = cache(async () => {
         return null
     }
 
+    // サブスクリプションが有効かどうかを判定
+    // stripePriceIdがあり、かつ現在の期間終了日が今日より後の場合は有効
     const isActive =
     data.stripePriceId &&
     data.stripeCurrentPeriodEnd?.getTime()! + DAY_IN_MS > Date.now();
 
     return { ...data, isActive: !!isActive }
-
 })

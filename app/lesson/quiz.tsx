@@ -1,6 +1,6 @@
 "use client"
 
-import { challengeOptions, challenges } from "@/db/schema";
+import { challengeOptions, challenges, userSubscriptions } from "@/db/schema";
 import { useState, useTransition } from "react";
 import { Header } from "./header";
 import Confetti from "react-confetti";
@@ -26,7 +26,9 @@ type Props = {
       completed: boolean;
       challengeOptions: (typeof challengeOptions.$inferSelect)[];
     })[];
-    userSubscription: any;
+    userSubscription: typeof userSubscriptions.$inferSelect & {
+        isActive: boolean;
+    } | null;
 };
 
 
