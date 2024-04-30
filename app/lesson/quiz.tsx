@@ -80,10 +80,11 @@ export const Quiz = ({ initialPercentage, initialHearts, initialLessonId, initia
 
     const options = challenge?.challengeOptions ?? [];
 
+
     const onNext = () => {
         setActiveIndex((current) => current + 1);
     }
-
+    
     const onSelect = (id: number) => {
        if(status !== "none") return;
 
@@ -91,62 +92,85 @@ export const Quiz = ({ initialPercentage, initialHearts, initialLessonId, initia
     };
 
     const onContinue = () => {
-        
+        // 選択肢が選択されていない場合は何もしない
         if(!selectedOption) return;
 
+        // 回答が間違っていた場合
         if(status === "wrong") {
+            // 状態を "none" に戻す
             setStatus("none");
+            // 選択肢の選択を解除する
             setSelectedOption(undefined);
             return;
         }
 
+        // 回答が正解だった場合
         if(status === "correct") {
+            // 次の問題に進む
             onNext();
+            // 状態を "none" に戻す
             setStatus("none");
+            // 選択肢の選択を解除する
             setSelectedOption(undefined);
             return;
         }
 
+        // 正解の選択肢を取得する
         const correctOption = options.find((option) => option.correct);
 
+        // 正解の選択肢がない場合は何もしない
         if(!correctOption) return;
 
+        // 選択した選択肢が正解だった場合
         if(correctOption.id === selectedOption) {
             startTransition(() => {
+                // 問題の進捗を更新する
                 upsertChallengeProgress(challenge.id)
                 .then((response) => {
+                    // ハートが足りない場合はモーダルを表示する
                     if(response?.error === "hearts") {
                         openHeartsModal();
                         return;
                     }
                     
+                    // 正解の音声を再生する
                     correctControls.play();
+                    // 状態を "correct" に設定する
                     setStatus("correct");
+                    // 進捗率を更新する
                     setPercentage((prev) => prev + 100 / challenges.length);
 
+                    // 初期進捗率が100%の場合はハートを1つ増やす
                     if(initialPercentage === 100) {
                         setHearts((prev) => Math.min(prev + 1, 5));
                     }
                 })
-                .catch(() => toast.error("エラーが発生しました"))
+                .catch(() => toast.error("エラーが発生しました"))
             })
-        } else {
+        } 
+        // 選択した選択肢が間違っていた場合
+        else {
             startTransition(() => {
+                // ハートを1つ減らす
                 reduceHearts(challenge.id)
                 .then((response) => {
+                    // ハートが足りない場合はモーダルを表示する
                     if(response?.error === "hearts") {
                         openHeartsModal();
                         return;
                     }
                     
+                    // 間違いの音声を再生する
                     incorrectControls.play();
+                    // 状態を "wrong" に設定する
                     setStatus("wrong");
 
+                    // エラーがない場合はハートを1つ減らす
                     if(!response?.error) {
                         setHearts((prev) => Math.max(prev - 1, 0));
                     }
                 })
-                .catch(() => toast.error("エラーが発生しました"))
+                .catch(() => toast.error("エラーが発生しました"))
             })    
         }
     };
