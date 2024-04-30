@@ -2,23 +2,23 @@ export const POINTS_TO_REFILL = 10;
 
 export const quests = [
   {
-    title: "Earn 20 XP",
+    title: "20 XPを獲得する",
     value: 20,
   },
   {
-    title: "Earn 50 XP",
+    title: "50 XPを獲得する", 
     value: 50,
   },
   {
-    title: "Earn 100 XP",
+    title: "100 XPを獲得する",
     value: 100,
   },
   {
-    title: "Earn 500 XP",
+    title: "500 XPを獲得する",
     value: 500,
   },
   {
-    title: "Earn 1000 XP",
+    title: "1000 XPを獲得する",
     value: 1000,
   },
 ];
